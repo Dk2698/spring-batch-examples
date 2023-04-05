@@ -17,6 +17,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.adapter.ItemReaderAdapter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
@@ -147,7 +148,16 @@ public class SampleJob {
 				.reader(firstItemReader)
 				.processor(firstItemProcessor)
 				.writer(firstItemWriter)
-				.build(); 
+				.faultTolerant()
+				.skip(FlatFileParseException.class)
+				.skipLimit(2)
+				.build();
+
+//		try {
+//
+//		}catch (FlatFileParseException ex){
+//
+//		}
 	}
 	
 	@Bean
