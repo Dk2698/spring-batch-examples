@@ -2,6 +2,8 @@ package com.kumar.config;
 
 import java.io.File;
 
+import com.kumar.model.StudentJdbc;
+import com.kumar.service.StudentService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -12,6 +14,8 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.adapter.ItemReaderAdapter;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
@@ -20,10 +24,15 @@ import org.springframework.batch.item.json.JacksonJsonObjectReader;
 import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.stereotype.Component;
 
 import com.kumar.listener.FirstJobListener;
@@ -35,6 +44,8 @@ import com.kumar.reader.FirstItemReader;
 import com.kumar.service.SecondTasklet;
 import com.kumar.writer.FirstItemWriter;
 import com.kumar.writer.FlatFileWriter;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class SampleJob {
@@ -65,7 +76,12 @@ public class SampleJob {
 	
 	@Autowired
 	private FlatFileWriter flatFileWriter;
-	
+
+
+//	@Autowired
+//	private DataSource dataSource;
+
+
 	
 //	@Bean
 	public Job firstJob() {
@@ -273,8 +289,50 @@ public class SampleJob {
 	  jsonItemReader.setJsonObjectReader(
 			  new JacksonJsonObjectReader<>(StudentJson.class)
 			  );
-	  
+
+//	  jsonItemReader.setMaxItemCount(8);
+//	  jsonItemReader.setCurrentItemCount(2);
 	  
 	  return jsonItemReader;
 	}
+
+
+//	@Autowired
+//	@Qualifier("datasource")
+//	private DataSource dataSource;
+//
+//	@Autowired
+//	@Qualifier("universitydataSource")
+//	private DataSource universitydataSource;
+
+	public JdbcCursorItemReader<StudentJdbc> jdbcJdbcCursorItemReader(){
+		JdbcCursorItemReader<StudentJdbc> jdbcCursorItemReader = new JdbcCursorItemReader<>();
+
+//		jdbcCursorItemReader.setDataSource(universitydataSource());
+//		jdbcCursorItemReader.setDataSource(universitydataSource);
+
+		jdbcCursorItemReader.setSql("select id, first_name as firstName, last_name as LastName,"+"email");
+		jdbcCursorItemReader.setRowMapper(
+				new BeanPropertyRowMapper<StudentJdbc>() {
+					{
+						setMappedClass(StudentJdbc.class);
+					}
+				});
+
+		return  jdbcCursorItemReader;
+	}
+
+//	@Autowired
+//	private StudentService studentService;
+//
+//	public ItemReaderAdapter<StudentJson> itemReaderAdapter(){
+//
+//		ItemReaderAdapter<StudentJson>  itemReaderAdapter= new ItemReaderAdapter<StudentJson>();
+//
+//		itemReaderAdapter.setTargetObject(studentService) ; // studentservivc
+//		itemReaderAdapter.setTargetMethod("getStudent");
+//		itemReaderAdapter.setArguments(new Object[]{1,"Test"});
+//
+//		return  itemReaderAdapter;
+//	}
 }
